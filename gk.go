@@ -12,6 +12,7 @@ import (
     "errors"
     "runtime"
     "strings"
+    "github.com/pkg/browser"
 )
 
 func main() {
@@ -20,8 +21,17 @@ func main() {
 
   fullSetupPtr := flag.Bool("c",false,"choose current kube context")
   copyTokenClipboard := flag.Bool("t",false,"copy access token of current context to clipboard")
+  serviceLink := flag.String("svc","none", "Give <namespace>:<service_name>:<port> to get proxy link")
+
 
   flag.Parse()
+
+    if *serviceLink != "none" {
+        err := printServiceLink(*serviceLink)
+        checkErr(err)
+        os.Exit(0)
+
+    }
 
   if *copyTokenClipboard == true {
     mcontext,err := getCurrentContext()
@@ -35,6 +45,7 @@ func main() {
     checkErr(err)
     os.Exit(0)
   }
+
 
   //Getting projects list
   var allprojects = []string{}
@@ -158,6 +169,13 @@ func getAllProjects() []string {
   }
 
   return allprojects
+}
+
+func printServiceLink(servicename string) (error) {
+    rawsplice := strings.Split(servicename,":")
+    link := "http://localhost:8001/api/v1/namespaces/" + rawsplice[0]+ "/services/"+rawsplice[1]+":"+rawsplice[2]+"/proxy"
+    browser.OpenURL(link)
+    return nil
 }
 
 func setKubeContextOnly() (error) {
