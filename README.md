@@ -5,10 +5,10 @@
 * kubectl installed
 * gcloud installed and configured to communicate with your projects
 
-## Dependencies
+## External dependencies
 
 * gopkg.in/AlecAivazis/survey.v1
-* github.com/pkg/browser
+* github.com/fatih/color
 
 ## Run
 ```
@@ -18,7 +18,8 @@ List through existing contexts in ~/.kube/config and picking one i.e "use-contex
 Listing availabe kubernetes clusteres in available gcloud projects then importing into kubeconfig 
 #> gk -t 
 Copy access-token to clipboard (when accessing kubernetes dashboard)
-#> gk -svc <namespace>:<service_name>:<port>
-Open browser tab pointing to service. 
-kubectl proxy must be enabled 
+#> gk -p
+Set current gcp project
+#> gk -i
+Print current gcp project and current kubeconfig context
 ```

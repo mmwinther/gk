@@ -5,33 +5,40 @@ import (
     "os"
     "log"
     //"github.com/davecgh/go-spew/spew"
-    //"fmt"
+    "fmt"
     "flag"
     "encoding/json"
     "gopkg.in/AlecAivazis/survey.v1"
     "errors"
     "runtime"
     "strings"
-    "github.com/pkg/browser"
+	"github.com/fatih/color"
 )
 
 func main() {
   //// TODO: checks for kubectl and gcloud are accessible on path and gcloud is configured
   // TODO: Add default value for projects list (gcloud config list)
 
-  fullSetupPtr := flag.Bool("c",false,"choose current kube context")
+  fullSetupPtr := flag.Bool("c",false,"set current gcp project and kubernetes cluster, context copied to kubeconfig")
   copyTokenClipboard := flag.Bool("t",false,"copy access token of current context to clipboard")
-  serviceLink := flag.String("svc","none", "Give <namespace>:<service_name>:<port> to get proxy link")
-
+  projectonly := flag.Bool("p",false, "choose current gcp project only")
+  lightinfo := flag.Bool("i",false, "print current gcp project and current selected kubecontext")
 
   flag.Parse()
 
-    if *serviceLink != "none" {
-        err := printServiceLink(*serviceLink)
-        checkErr(err)
-        os.Exit(0)
+  // Setting colored output settings
 
-    }
+
+  if *lightinfo == true {
+  	printLightInfo()
+  	os.Exit(0)
+  }
+
+  if *projectonly == true {
+	setCurrentProjectOnly()
+	os.Exit(0)
+  }
+
 
   if *copyTokenClipboard == true {
     mcontext,err := getCurrentContext()
@@ -125,6 +132,26 @@ func getAllK8s() map[string]string {
   return allclusters
 }
 
+func printLightInfo() {
+
+	currentcontext, err := exec.Command("kubectl", "config", "current-context").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	context_slice := strings.Split(string(currentcontext),"_")
+
+	currentproject, err := exec.Command("gcloud", "config", "get-value","core/project").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+	red := color.New(color.FgRed,color.Bold).SprintFunc()
+	cyan := color.New(color.FgCyan, color.Bold).SprintfFunc()
+
+	fmt.Printf("Gcloud set to project: %s",red(string(currentproject)))
+	fmt.Printf("Kubeconfig set to project: %s, cluster: %s", red(context_slice[1]), cyan(context_slice[len(context_slice)-1]))
+}
+
 func getAllContexts() []string {
   type ContextDetail struct {
     Name string `json:"name"`
@@ -171,12 +198,37 @@ func getAllProjects() []string {
   return allprojects
 }
 
-func printServiceLink(servicename string) (error) {
-    rawsplice := strings.Split(servicename,":")
-    link := "http://localhost:8001/api/v1/namespaces/" + rawsplice[0]+ "/services/"+rawsplice[1]+":"+rawsplice[2]+"/proxy"
-    browser.OpenURL(link)
-    return nil
+
+func setCurrentProjectOnly() {
+	var projects = []string{}
+	projects = getAllProjects()
+	// Choose project
+	var qs_project = []*survey.Question{
+		{
+			Name: "projects",
+			Prompt: &survey.Select{
+				Message: "Choose a project:",
+				Options: projects,
+				PageSize: len (projects),
+			},
+		},
+	}
+	answers_project := struct {
+		Projects string `survey:"projects"`
+	}{}
+
+	err := survey.Ask(qs_project, &answers_project)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set chosen project as active
+	_,err = exec.Command("gcloud", "config", "set", "project",string(answers_project.Projects)).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
+
 
 func setKubeContextOnly() (error) {
 
