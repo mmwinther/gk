@@ -1,6 +1,6 @@
 # Gopkg.toml example
 #
-# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
+# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
@@ -26,13 +26,29 @@
 
 
 [[constraint]]
-  name = "github.com/fatih/color"
-  version = "1.7.0"
+  branch = "master"
+  name = "github.com/Netflix/go-expect"
 
 [[constraint]]
-  name = "gopkg.in/AlecAivazis/survey.v1"
-  version = "1.6.3"
+  branch = "master"
+  name = "github.com/hinshun/vt10x"
+
+[[constraint]]
+  name = "github.com/mattn/go-isatty"
+  version = "0.0.3"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mgutz/ansi"
+
+[[constraint]]
+  name = "github.com/stretchr/testify"
+  version = "1.2.1"
 
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kballard/go-shellquote"
