@@ -22,4 +22,6 @@ Copy access-token to clipboard (when accessing kubernetes dashboard)
 Set current gcp project
 #> gk -i
 Print current gcp project and current kubeconfig context
+#> gk -n
+Set "default" namespace for current kube context
 ```

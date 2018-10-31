@@ -23,10 +23,17 @@ func main() {
   copyTokenClipboard := flag.Bool("t",false,"copy access token of current context to clipboard")
   projectonly := flag.Bool("p",false, "choose current gcp project only")
   lightinfo := flag.Bool("i",false, "print current gcp project and current selected kubecontext")
+  namespace := flag.Bool("n",false,"set default kubectl namespace for current context")
 
   flag.Parse()
 
   // Setting colored output settings
+
+
+  if *namespace == true {
+		setNamespace()
+		os.Exit(0)
+  }
 
 
   if *lightinfo == true {
@@ -111,6 +118,44 @@ func main() {
   checkErr(err)
   // Activate cluster (get kubeconfig credentials for chosen cluster)
   _,err = exec.Command("gcloud", "container", "clusters", "get-credentials",answers_cluster.Clusters,"--zone",allclusters[answers_cluster.Clusters]).Output()
+
+}
+func setNamespace() {
+	currentcontext, err := exec.Command("kubectl", "config", "current-context").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	namespaces, err := exec.Command("kubectl", "get", "namespaces","-ojsonpath={.items[*].metadata.name}").Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	namespaces_slice := strings.Split(string(namespaces)," ")
+	var qs_namespace = []*survey.Question{
+		{
+			Name: "namespaces",
+			Prompt: &survey.Select{
+				Message: "Choose a namespace:",
+				Options: namespaces_slice,
+				PageSize: len (namespaces_slice),
+			},
+		},
+	}
+	answers_namespace := struct {
+		Namespaces string `survey:"namespaces"`
+	}{}
+
+	err = survey.Ask(qs_namespace, &answers_namespace)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Set chosen namespace as default
+	_, err = exec.Command("kubectl", "config", "set-context", strings.Trim(string(currentcontext),"\n"), "--namespace="+string(answers_namespace.Namespaces)).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 
