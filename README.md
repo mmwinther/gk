@@ -12,6 +12,8 @@
 
 ## Run
 ```
+#> gk -v
+Print current app version
 #> gk
 List through existing contexts in ~/.kube/config and picking one i.e "use-context"
 #> gk -c
@@ -24,4 +26,6 @@ Set current gcp project
 Print current gcp project and current kubeconfig context
 #> gk -n
 Set "default" namespace for current kube context
+#> gk -clean
+Remove all clusters and contexts from .kube/config
 ```

@@ -15,39 +15,54 @@ import (
 	"github.com/fatih/color"
 )
 
+const (
+	appVersion = "v0.0.3"
+)
+
 func main() {
   //// TODO: checks for kubectl and gcloud are accessible on path and gcloud is configured
   // TODO: Add default value for projects list (gcloud config list)
+
 
   fullSetupPtr := flag.Bool("c",false,"set current gcp project and kubernetes cluster, context copied to kubeconfig")
   copyTokenClipboard := flag.Bool("t",false,"copy access token of current context to clipboard")
   projectonly := flag.Bool("p",false, "choose current gcp project only")
   lightinfo := flag.Bool("i",false, "print current gcp project and current selected kubecontext")
   namespace := flag.Bool("n",false,"set default kubectl namespace for current context")
+  clean := flag.Bool("clean",false,"delete all kubeconfig clusters and contexts, except minikube")
+  version := flag.Bool("v",false,"prints app version")
 
   flag.Parse()
 
-  // Setting colored output settings
+  if *version {
+  	fmt.Println(appVersion)
+  	os.Exit(0)
+  }
+  if *clean {
+  	cleanKubeconfig()
+  	os.Exit(0)
 
-
-  if *namespace == true {
-		setNamespace()
-		os.Exit(0)
   }
 
 
-  if *lightinfo == true {
+  if *namespace {
+  	setNamespace()
+  	os.Exit(0)
+  }
+
+
+  if *lightinfo {
   	printLightInfo()
   	os.Exit(0)
   }
 
-  if *projectonly == true {
+  if *projectonly {
 	setCurrentProjectOnly()
 	os.Exit(0)
   }
 
 
-  if *copyTokenClipboard == true {
+  if *copyTokenClipboard {
     mcontext,err := getCurrentContext()
     checkErr(err)
     err = tokenToClipboard(mcontext)
@@ -118,6 +133,34 @@ func main() {
   checkErr(err)
   // Activate cluster (get kubeconfig credentials for chosen cluster)
   _,err = exec.Command("gcloud", "container", "clusters", "get-credentials",answers_cluster.Clusters,"--zone",allclusters[answers_cluster.Clusters]).Output()
+
+}
+func cleanKubeconfig() {
+	byteclusters, err := exec.Command("kubectl","config","get-clusters").Output()
+	clusters := strings.Split(string(byteclusters),"\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _,cluster := range clusters[1:len(clusters)-1] {
+		if cluster != "minikube" {
+			_,err := exec.Command("kubectl","config","delete-cluster",cluster).Output()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+
+	contexts := getAllContexts()
+	for _,context := range contexts{
+		if context != "minikube" {
+			_,err := exec.Command("kubectl", "config", "delete-context", context ).Output()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
+
+
 
 }
 func setNamespace() {
