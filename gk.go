@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	appVersion = "v0.0.3"
+	appVersion = "v0.0.4"
 )
 
 func main() {
@@ -222,10 +222,25 @@ func getAllK8s() map[string]string {
 
 func printLightInfo() {
 
+
+	var namespace string
 	currentcontext, err := exec.Command("kubectl", "config", "current-context").Output()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	jsonpath := "-ojsonpath={.contexts [?(@.name=='"+strings.Trim( string(currentcontext),"\n")+"')].context.namespace}"
+	currentNamespace, err := exec.Command("kubectl", "config", "view", jsonpath).Output()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if string(currentNamespace) == "" {
+		namespace = "default\n"
+	} else {
+		namespace = string(currentNamespace)+"\n"
+	}
+
 
 	context_slice := strings.Split(string(currentcontext),"_")
 
@@ -238,6 +253,7 @@ func printLightInfo() {
 
 	fmt.Printf("Gcloud set to project: %s",red(string(currentproject)))
 	fmt.Printf("Kubeconfig set to project: %s, cluster: %s", red(context_slice[1]), cyan(context_slice[len(context_slice)-1]))
+	fmt.Printf("Current namespace: %s", cyan(namespace))
 }
 
 func getAllContexts() []string {
