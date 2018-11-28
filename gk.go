@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	appVersion = "v0.0.4"
+	appVersion = "v0.0.5"
 )
 
 func main() {
@@ -31,7 +31,6 @@ func main() {
   namespace := flag.Bool("n",false,"set default kubectl namespace for current context")
   clean := flag.Bool("clean",false,"delete all kubeconfig clusters and contexts, except minikube")
   version := flag.Bool("v",false,"prints app version")
-
   flag.Parse()
 
   if *version {
@@ -43,12 +42,15 @@ func main() {
   	os.Exit(0)
 
   }
+  if *namespace && len(flag.Args()) == 0 {
+  	setNamespace("all-namespaces")
+  	os.Exit(0)
 
-
-  if *namespace {
-  	setNamespace()
+  } else if *namespace && flag.Arg(0) != "" {
+  	setNamespace(flag.Arg(0))
   	os.Exit(0)
   }
+
 
 
   if *lightinfo {
@@ -163,10 +165,21 @@ func cleanKubeconfig() {
 
 
 }
-func setNamespace() {
+func setNamespace(ns string) {
+
+
 	currentcontext, err := exec.Command("kubectl", "config", "current-context").Output()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if ns != "all-namespaces" {
+		_, err = exec.Command("kubectl", "config", "set-context", strings.Trim(string(currentcontext),"\n"),  "--namespace="+ns).Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+
 	}
 
 	namespaces, err := exec.Command("kubectl", "get", "namespaces","-ojsonpath={.items[*].metadata.name}").Output()
