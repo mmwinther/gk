@@ -15,7 +15,7 @@
 #> gk -v
 Print current app version
 #> gk
-List through existing contexts in ~/.kube/config and picking one i.e "use-context"
+List through existing contexts in ~/.kube/config and picking one i.e "kubectl use-context <chosen_context>"
 #> gk -c
 Listing availabe kubernetes clusteres in available gcloud projects then importing into kubeconfig 
 #> gk -t 
