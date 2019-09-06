@@ -107,7 +107,6 @@ func main() {
   allclusters := getAllK8s()
   if len(allclusters) == 0 {
     log.Fatal ("ERROR: Chosen project has no kubernetes clusters")
-    //os.Exit(1)
   }
 
 
@@ -405,7 +404,6 @@ func toClipboard(output []byte, arch string) {
     }
     // Linux
     if arch == "linux" {
-        //copyCmd = exec.Command("xclip", "-selection", "c")
         copyCmd = exec.Command("xclip")
     }
 
@@ -432,7 +430,6 @@ func toClipboard(output []byte, arch string) {
 
 func checkErr(err error) {
     if err != nil {
-         //fmt.Printf("BLABLA: %s",err)
         log.Fatal("ERROR:", err)
     }
 }

@@ -5,11 +5,6 @@
 * kubectl installed
 * gcloud installed and configured to communicate with your projects
 
-## External dependencies
-
-* gopkg.in/AlecAivazis/survey.v1
-* github.com/fatih/color
-
 ## Run
 ```
 #> gk -v
